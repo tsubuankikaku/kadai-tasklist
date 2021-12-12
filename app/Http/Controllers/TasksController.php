@@ -74,11 +74,10 @@ class TasksController extends Controller
         ]);
         
      
-        $task = new Task;
-        $task->user_id = $request->user()->id;
-        $task->status = $request->status;
-        $task->content = $request->content;
-        $task->save();
+       $request->user()->microposts()->create([
+            'content' => $request->content,
+            'status'=>$request->status,
+        ]);
         
         return redirect('/');
        

@@ -16,9 +16,7 @@ class AddUserIdToTable extends Migration
        Schema::table('tasks', function (Blueprint $table) {
             
             $table->unsignedBigInteger('user_id');
-            $table->bigIncrements('id');
-            $table->string('content');    // contentカラム追加
-            $table->timestamps();
+            
            
 
 
@@ -33,6 +31,8 @@ class AddUserIdToTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tasks');
+        Schema::table('tasks', function (Blueprint $table) {
+            $table->dropColumn('user_id');
+        });
     }
 }
