@@ -74,7 +74,7 @@ class TasksController extends Controller
         ]);
         
      
-       $request->user()->microposts()->create([
+       $request->user()->tasks()->create([
             'content' => $request->content,
             'status'=>$request->status,
         ]);
