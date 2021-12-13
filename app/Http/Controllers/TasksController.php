@@ -35,7 +35,7 @@ class TasksController extends Controller
             
         }else{    
               
-            return redirect('login');
+            return view('welcome',$data);
     
         }
     }
