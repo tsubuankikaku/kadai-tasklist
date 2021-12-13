@@ -1,9 +1,13 @@
 <?php
 
+
+    
 Route::get('/', 'TasksController@index');
 
 Route::resource('tasks', 'TasksController');
 
+
+Route::group(['middleware' => ['auth']], function () {
 
 // 認証
 Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
@@ -15,9 +19,6 @@ Route::get('signup', 'Auth\RegisterController@showRegistrationForm')->name('sign
 Route::post('signup', 'Auth\RegisterController@register')->name('signup.post');
 
 
-
-Route::group(['middleware' => ['auth']], function () {
-  
-    Route::resource('tasks', 'TasksController', ['only' => ['store', 'destroy']]);
+Route::resource('tasks', 'TasksController', ['only' => ['store', 'destroy']]);
    
 });

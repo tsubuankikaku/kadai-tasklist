@@ -92,12 +92,16 @@ class TasksController extends Controller
     
     public function show($id)
     {
-        $task = Task::findOrFail($id);
 
-        // タスク詳細ビューでそれを表示
-        return view('tasks.show', [
-            'task' => $task,
-        ]);
+        $task = \App\Task::findOrFail($id);
+
+        
+        if (\Auth::id() === $task->user_id) {
+            $task->view();
+        }
+
+        
+        return redirect('/');
     }
 
     /**
@@ -109,12 +113,16 @@ class TasksController extends Controller
     
     public function edit($id)
     {
-         $task = Task::findOrFail($id);
+       
+         $task = \App\Task::findOrFail($id);
 
-        // メッセージ編集ビューでそれを表示
-        return view('tasks.edit', [
-            'task' => $task,
-        ]);
+        
+        if (\Auth::id() === $task->user_id) {
+            $task->view();
+        }
+
+        
+        return redirect('/');
     }
 
     /**
@@ -134,16 +142,18 @@ class TasksController extends Controller
              'status' => 'required|max:10',   
         ]);
         
-         $task = Task::findOrFail($id);
         
-        
-        $request->user()->tasks()->create([
-            'content' => $request->content,
-            'status'=>$request->status,
-        ]);
+         $task = \App\Task::findOrFail($id);
 
-        // トップページへリダイレクトさせる
+        // 認証済みユーザ（閲覧者）がその投稿の所有者である場合は、投稿を削除
+        if (\Auth::id() === $task->user_id) {
+            $task->create();
+        }
+
+        
         return redirect('/');
+        
+       
     }
 
     /**
