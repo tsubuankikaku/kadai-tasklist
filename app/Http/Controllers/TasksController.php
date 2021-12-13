@@ -135,10 +135,12 @@ class TasksController extends Controller
         ]);
         
          $task = Task::findOrFail($id);
-        // タスクを更新
-        $task->content = $request->content;
-        $task->status = $request->status;
-        $task->save();
+        
+        
+        $request->user()->tasks()->create([
+            'content' => $request->content,
+            'status'=>$request->status,
+        ]);
 
         // トップページへリダイレクトさせる
         return redirect('/');
