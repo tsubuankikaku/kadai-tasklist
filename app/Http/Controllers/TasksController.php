@@ -13,47 +13,38 @@ class TasksController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-   
+    // getでtasks/にアクセスされた場合の「一覧表示処理」
     public function index()
     {
         $data = [];
-        if (\Auth::check()) { // 認証済みの場合
-            // 認証済みユーザを取得
-            
+        if (\Auth::check()) {
             $user = \Auth::user();
+            $tasks = $user->tasks()->orderBy('created_at', 'desc')->paginate(10);
             
-            
-            // ユーザの投稿の一覧を作成日時の降順で取得
-            // （後のChapterで他ユーザの投稿も取得するように変更しますが、現時点ではこのユーザの投稿のみ取得します）
-            $tasks = $user->task()->orderBy('created_at', 'desc')->paginate(10);
-            
-             // タスク一覧ビューでそれを表示
+            $data = [
+                'user' => $user,
+                'tasks' => $tasks,
+            ];
             return view('tasks.index', [
                 'tasks' => $tasks,
-                
             ]);
-            
-        }else{    
-              
-            return view('welcome',$data);
-    
         }
+        
+        return view('welcome', $data);
     }
+
     /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
      */
-    
+    // getでtasks/createにアクセスされた場合の「新規登録画面表示処理」
     public function create()
     {
-        $task = new Task;
+        $task = new task;
 
-        // メッセージ作成ビューを表示
         return view('tasks.create', [
             'task' => $task,
-
-            
         ]);
     }
 
@@ -63,46 +54,42 @@ class TasksController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    
+    // postでtasks/にアクセスされた場合の「新規登録処理」
     public function store(Request $request)
     {
-         // バリデーション
-        $request->validate([
-             
-            'content' => 'required|max:255',
-            'status' => 'required|max:10',  
+        $this->validate($request, [
+            'status' => 'required|max:10',   // 追加
+            'content' => 'required|max:191',
         ]);
-        
-     
-       $request->user()->tasks()->create([
-            'content' => $request->content,
-            'status'=>$request->status,
-        ]);
-        
-        return redirect('/');
-       
-    }
 
+        $request->user()->tasks()->create([
+            'status' => $request->status,
+            'content' => $request->content,
+        ]);
+
+        return redirect('/');
+    }
+    
     /**
      * Display the specified resource.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    
+    // getでtasks/idにアクセスされた場合の「取得表示処理」
     public function show($id)
     {
-
-        $task = \App\Task::findOrFail($id);
-
+        $task = Task::find($id);
         
         if (\Auth::id() === $task->user_id) {
-            $task->view();
+            return view('tasks.show', [
+                'task' => $task,
+            ]);
+        } else {
+            return redirect('/');
         }
-
-        
-        return redirect('/');
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -110,19 +97,18 @@ class TasksController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    
+    // getでmessages/id/editにアクセスされた場合の「更新画面表示処理」
     public function edit($id)
     {
-       
-         $task = \App\Task::findOrFail($id);
+        $task = Task::find($id);
 
-        
         if (\Auth::id() === $task->user_id) {
-            $task->view();
+            return view('tasks.edit', [
+                'task' => $task,
+            ]);
+        } else {
+            return redirect('/');
         }
-
-        
-        return redirect('/');
     }
 
     /**
@@ -130,30 +116,24 @@ class TasksController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response    
+     * @return \Illuminate\Http\Response
      */
-    
+    // putまたはpatchでtasks/idにアクセスされた場合の「更新処理」
     public function update(Request $request, $id)
     {
-        // バリデーション
-        $request->validate([
-           
-            'content' => 'required|max:255',
-             'status' => 'required|max:10',   
+        $this->validate($request, [
+            'status' => 'required|max:10',   // 追加
+            'content' => 'required|max:191',
         ]);
-        
-        
-         $task = \App\Task::findOrFail($id);
 
-        // 認証済みユーザ（閲覧者）がその投稿の所有者である場合は、投稿を削除
+        $task = Task::find($id);
         if (\Auth::id() === $task->user_id) {
-            $task->create();
+            $task->status = $request->status;    // 追加
+            $task->content = $request->content;
+            $task->save();
         }
 
-        
         return redirect('/');
-        
-       
     }
 
     /**
@@ -162,19 +142,14 @@ class TasksController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-   
+    // deleteでtasks/idにアクセスされた場合の「削除処理」
     public function destroy($id)
     {
-        
-        // idの値で投稿を検索して取得
-        $task = \App\Task::findOrFail($id);
+        $task = \App\Task::find($id);
 
-        // 認証済みユーザ（閲覧者）がその投稿の所有者である場合は、投稿を削除
         if (\Auth::id() === $task->user_id) {
             $task->delete();
         }
-
-        
         return redirect('/');
     }
 }
